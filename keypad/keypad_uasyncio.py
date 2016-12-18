@@ -193,8 +193,8 @@ def main_test():
     loop = asyncio.get_event_loop()
 
     ## Add the keypad scanning and keypad watcher coroutines.
-    loop.ensure_future(keypad.scan_coro())
-    loop.ensure_future(keypad_watcher(keypad=keypad))
+    loop.create_task(keypad.scan_coro())
+    loop.create_task(keypad_watcher(keypad=keypad))
 
     ## Start running the coroutines
     loop.run_forever()
