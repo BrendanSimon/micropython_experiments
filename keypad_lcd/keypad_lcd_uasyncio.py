@@ -2,18 +2,25 @@
 Keypad_LCD module/class for MicroPython, using uasyncio module.
 ===========================================================
 
+Scans for key presses and displays them on an LCD.
+
 Notes
 -----
 
     * Two uasync coroutines are created.
-        1. Keypad.scan_coro -- scans keypad rows/columns and pushes key events to a queue.
-        2. keypad_watcher -- watches the keypad for key events on the queue.
+        1. keypad.scan_coro -- scans keypad rows/columns and pushes key events to a queue.
+        2. keypad_lcd_task -- watches the keypad for key events on the queue.
 
     * To run type:
-        >>> import keypad_lcd_uasyncio as k
-        >>> k.run()
+        >>> import keypad_lcd_uasyncio as app
+        >>> app.run()
 
-    * Need to have the following modules installed (via upip or manually)
+    * Depends of the following modules in this repo (note: assumes installed in same directory)
+        - keypad_uasyncio
+        - lcd/python_lcd_dhylands_fork/pyb_i2c_lcd
+        - lcd/python_lcd_dhylands_fork/lcd
+
+    * Depends on the following micropython-lib modules installed (via upip or manually)
         - micropython-uasyncio
         - micropython-uasyncio.queues
         - micropython-uasyncio.core ???
@@ -31,6 +38,8 @@ Testing
 To Do
 -----
 
+    * Port I2cLcd module to machine.I2C API.
+    * Port I2cLcd module to use uasyncio.sleep_ms() instead of pyb.delay().
     * Unit tests :-/
     * Video the keypad_lcd working :)
 
@@ -78,8 +87,8 @@ async def keypad_lcd_task(lcd, keypad):
 
 ##============================================================================
 
-def main_test():
-    """Main test function."""
+def main():
+    """Main function."""
 
     print("main_test(): start")
 
@@ -106,7 +115,7 @@ def main_test():
 
 ##============================================================================
 
-run = main_test
+run = main
 
 if __name__ == '__main__':
-    main_test()
+    main()
