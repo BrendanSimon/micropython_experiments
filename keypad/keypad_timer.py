@@ -101,32 +101,37 @@ class Keypad_Timer():
 
         self.scan_row = 0
         self.key_code = None
+        self.key_char = None
 
     #-------------------------------------------------------------------------
 
     def get_key(self):
         """Get last key pressed."""
 
-        key = None if self.key_code == None else self.keys[self.key_code]['char']
+        key_char = self.key_char
+
         self.key_code = None    ## consume last key pressed
-        return key
+        self.key_char = None    ## consume last key pressed
+
+        return key_char
 
     #-------------------------------------------------------------------------
 
-    def key_process(self, key_code, pin):
-        """Process a key press or release.
-           NOTE: called from timer interrupt so can't allocate memory !!
-        """
+    def key_process(self, key_code, col_pin):
+        """Process a key press or release."""
 
-        if pin.value():
+        key_event = None
+
+        if col_pin.value():
             if self.keys[key_code]['state'] == self.KEY_UP:
-                self.keys[key_code]['state'] = self.KEY_DOWN
-                self.key_code = key_code
-                #print("DEBUG: Key down:", self.keys[key_code]['char'])
+                key_event = self.KEY_DOWN
+                self.keys[key_code]['state'] = key_event
         else:
             if self.keys[key_code]['state'] == self.KEY_DOWN:
-                self.keys[key_code]['state'] = self.KEY_UP
-                #print("DEBUG: Key up:", self.keys[key_code]['char'])
+                key_event = self.KEY_UP
+                self.keys[key_code]['state'] = key_event
+
+        return key_event
 
     #-------------------------------------------------------------------------
 
@@ -160,7 +165,12 @@ class Keypad_Timer():
 
         key_code = self.scan_row * len(self.cols)
         for col in range(len(self.cols)):
-            self.key_process(key_code + col, self.col_pins[col])
+            ## Process pin state.
+            key_event = self.key_process(key_code + col, self.col_pins[col])
+            ## Process key event.
+            if key_event == self.KEY_DOWN:
+                self.key_code = key_code
+                self.key_char = self.keys[key_code]['char']
 
         self.scan_row_update()
 

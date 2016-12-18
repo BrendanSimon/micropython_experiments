@@ -131,12 +131,10 @@ class Keypad_uasyncio():
             if self.keys[key_code]['state'] == self.KEY_UP:
                 key_event = self.KEY_DOWN
                 self.keys[key_code]['state'] = key_event
-                #print("DEBUG: Key down:", self.keys[key_code]['char'])
         else:
             if self.keys[key_code]['state'] == self.KEY_DOWN:
                 key_event = self.KEY_UP
                 self.keys[key_code]['state'] = key_event
-                #print("DEBUG: Key up:", self.keys[key_code]['char'])
 
         return key_event
 
@@ -158,7 +156,8 @@ class Keypad_uasyncio():
                 for col, col_pin in enumerate(self.col_pins):
                     ## Process pin state.
                     key_event = self.key_process(key_code=key_code, col_pin=col_pin)
-                    if key_event == self.KEY_UP:
+                    ## Process key event.
+                    if key_event == self.KEY_DOWN:
                         key_char = self.keys[key_code]['char']
                         await self.queue.put(key_char)
 
