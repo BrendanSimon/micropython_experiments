@@ -32,9 +32,10 @@ To Do
 -----
 
     * Pass the key and pin info to the class via function parameters.
+    * Support long key press events.
     * Refactor into a common base class.
-    * Unit tests :)
-    * Video the keypad working.
+    * Unit tests :-/
+    * Video the keypad working :)
 
 """
 
@@ -185,15 +186,20 @@ def main_test():
 
     micropython.alloc_emergency_exception_buf(100)
 
+    ## Create the keypad instance.
     keypad = Keypad_uasyncio(queue_size=4, start=True)
 
+    ## Get a handle to the asyncio event loop.
     loop = asyncio.get_event_loop()
+
+    ## Add the keypad scanning and keypad watcher coroutines.
     loop.create_task(keypad.scan_coro())
     loop.create_task(keypad_watcher(keypad=keypad))
+
+    ## Start running the coroutines
     loop.run_forever()
 
     print("main_test(): end")
-
 
 ##============================================================================
 

@@ -26,9 +26,10 @@ To Do
 -----
 
     * Pass the key and pin info to the class via function parameters.
+    * Support long key press events.
     * Refactor into a common base class.
-    * Unit tests :)
-    * Video the keypad working.
+    * Unit tests :-/
+    * Video the keypad working :)
 
 """
 
