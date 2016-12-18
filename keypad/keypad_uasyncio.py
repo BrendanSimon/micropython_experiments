@@ -53,37 +53,57 @@ from uasyncio.queues import Queue
 
 ##============================================================================
 
+QUEUE_SIZE_DEFAULT = 0
+START_DEFAULT = False
+LONG_KEYPRESS_COUNT_DEFAULT = 20
+
 class Keypad_uasyncio():
     """Class to scan a Keypad matrix (e.g. 16-keys as 4x4 matrix) and report
        key presses.
     """
 
-    ## Key states
-    KEY_UP      = 0
-    KEY_DOWN    = 1
+    ## Key states/events
+    KEY_UP          = 0
+    KEY_DOWN        = 1
+    KEY_DOWN_LONG   = 2
+    KEY_UP_LONG     = 3     ## an event only, not a state.
 
     #-------------------------------------------------------------------------
 
-    def __init__(self, queue_size=0, start=False):
-        self.init(queue_size=queue_size, start=start)
+    def __init__(self, queue_size=QUEUE_SIZE_DEFAULT, start=START_DEFAULT, long_keypress_count=LONG_KEYPRESS_COUNT_DEFAULT):
+        """Constructor."""
+
+        self.init(queue_size=queue_size, start=start, long_keypress_count=long_keypress_count)
 
     #-------------------------------------------------------------------------
 
-    def init(self, queue_size=0, start=False):
+    def init(self, queue_size=QUEUE_SIZE_DEFAULT, start=START_DEFAULT, long_keypress_count=LONG_KEYPRESS_COUNT_DEFAULT):
         """Initialise/Reinitialise the instance."""
 
         ## Create the queue to push key events to.
         self.queue = Queue(maxsize=queue_size)
 
+        self.running = start
+        self.long_keypress_count = long_keypress_count
+
+        ## The chars on the keypad
         keys = [
-                '1', '2', '3', 'A',
-                '4', '5', '6', 'B',
-                '7', '8', '9', 'C',
-                '*', '0', '#', 'D',
-               ]
+            '1', '2', '3', 'A',
+            '4', '5', '6', 'B',
+            '7', '8', '9', 'C',
+            '*', '0', '#', 'D',
+            ]
+
+        ## The chars to display/return when the key is pressed down for a long time.
+        self.chars_long = [
+            'm', 'i', 'e', 'a',
+            'n', 'j', 'f', 'b',
+            'o', 'k', 'g', 'c',
+            'p', 'l', 'h', 'd',
+            ]
 
         ## Initialise all keys to the UP state.
-        self.keys = [ { 'char' : key, 'state' : self.KEY_UP } for key in keys ]
+        self.keys = [ { 'char':key, 'state':self.KEY_UP, 'down_count':0 } for key in keys ]
 
         ## Pin names for rows and columns.
         self.rows = [ 'PD1', 'PD3', 'PD5', 'PD7' ]
@@ -96,8 +116,6 @@ class Keypad_uasyncio():
         self.col_pins = [ Pin(pin_name, mode=Pin.IN, pull=Pin.PULL_DOWN) for pin_name in self.cols ]
 
         self.row_scan_delay_ms = 40 // len(self.rows)
-
-        self.running = start
 
     #-------------------------------------------------------------------------
 
@@ -126,16 +144,28 @@ class Keypad_uasyncio():
     def key_process(self, key_code, col_pin):
         """Process a key press or release."""
 
+        key = self.keys[key_code]
         key_event = None
 
         if col_pin.value():
-            if self.keys[key_code]['state'] == self.KEY_UP:
+            ## key pressed down
+            if key['state'] == self.KEY_UP:
+                ## just pressed (up => down)
                 key_event = self.KEY_DOWN
-                self.keys[key_code]['state'] = key_event
+                key['state'] = key_event
+            elif key['state'] == self.KEY_DOWN:
+                ## key still down
+                    key['down_count'] += 1
+                    if key['down_count'] >= self.long_keypress_count:
+                        key_event = self.KEY_DOWN_LONG
+                        key['state'] = key_event
         else:
-            if self.keys[key_code]['state'] == self.KEY_DOWN:
-                key_event = self.KEY_UP
-                self.keys[key_code]['state'] = key_event
+            ## key not pressed (up)
+            if key['state'] == self.KEY_DOWN:
+                ## just released (down => up)
+                key_event = self.KEY_UP if key['down_count'] < self.long_keypress_count else self.KEY_UP_LONG
+            key['state'] = self.KEY_UP
+            key['down_count'] = 0
 
         return key_event
 
@@ -158,8 +188,11 @@ class Keypad_uasyncio():
                     ## Process pin state.
                     key_event = self.key_process(key_code=key_code, col_pin=col_pin)
                     ## Process key event.
-                    if key_event == self.KEY_DOWN:
+                    if key_event == self.KEY_UP:
                         key_char = self.keys[key_code]['char']
+                        await self.queue.put(key_char)
+                    elif key_event == self.KEY_DOWN_LONG:
+                        key_char = self.chars_long[key_code]
                         await self.queue.put(key_char)
 
                     key_code += 1
