@@ -82,8 +82,17 @@ async def keypad_lcd_task(lcd, keypad):
     while True:
         key = await keypad.get_key()
         #key = await keypad.queue.get()
-        print("keypad_watcher: got key:", key)
-        lcd.putchar(key)
+        print("keypad_watcher: got key: {!r}".format(key))
+        if key == '*':      ## backspace
+            lcd.move_to(cursor_x=0)
+        elif key == 'p':    ## erase line
+            lcd.clear_row()
+        elif key == '#':    ## enter
+            lcd.putchar("\n")
+        elif key == 'd':    ## erase screen
+            lcd.clear()
+        else:
+            lcd.putchar(key)
 
 ##============================================================================
 
