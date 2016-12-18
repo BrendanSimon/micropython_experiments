@@ -1,0 +1,3 @@
+[submodule "lcd/python_lcd_dhylands_fork"]
+	path = lcd/python_lcd_dhylands_fork
+	url = https://github.com/BrendanSimon/python_lcd.git
