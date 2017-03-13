@@ -105,7 +105,12 @@ async def check_button():
             flash_count = 10
 
 
-loop = uasyncio.get_event_loop()
-loop.create_task(check_button())
-loop.create_task(update_leds())
-loop.run_forever()
+def main():
+    loop = uasyncio.get_event_loop()
+    loop.create_task(check_button())
+    loop.create_task(update_leds())
+    loop.run_forever()
+
+
+if __name__ == '__main__':
+    main()
