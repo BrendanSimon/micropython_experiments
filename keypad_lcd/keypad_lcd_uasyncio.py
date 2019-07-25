@@ -119,6 +119,7 @@ def main():
 
     ## Start running the coroutines
     loop.run_forever()
+    loop.close()
 
     print("main_test(): end")
 
