@@ -39,7 +39,7 @@ class MyDialog(wxSC.SizedDialog):
         self.count3 = 0
         self.count4 = 0
 
-        max = self.count_max = 50
+        max = self.count_max = 40
         size = (250, -1)
 
         ## Row 1
@@ -70,7 +70,7 @@ class MyDialog(wxSC.SizedDialog):
         self.timer = wx.Timer(self)
         self.timer.Start(100)
 
-        # Get a handle to the asyncio event loop.
+        ## Get a handle to the asyncio event loop.
         loop = asyncio.get_event_loop()
 
         ## Add asyncio tasks to udate gauages 2-4.
@@ -94,7 +94,7 @@ class MyDialog(wxSC.SizedDialog):
             self.count2 = 0 if self.count2 >= self.count_max else self.count2 + 1
             self.gauge2.SetValue(self.count2)
             #await asyncio.sleep_ms(200);
-            await asyncio.sleep(200/1000);      ## 200ms
+            await asyncio.sleep(100/1000);      ## 100ms
 
     async def update_gauge3_task(self):
         """Asynchronous function/task to update gauge3."""
@@ -102,7 +102,7 @@ class MyDialog(wxSC.SizedDialog):
             #print("update_gauge3_task:")
             self.count3 = 0 if self.count3 >= self.count_max else self.count3 + 1
             self.gauge3.SetValue(self.count3)
-            await asyncio.sleep(300/1000);      ## 300ms
+            await asyncio.sleep(200/1000);      ## 200ms
 
     async def update_gauge4_task(self):
         """Asynchronous function/task to update gauge4."""
@@ -110,7 +110,7 @@ class MyDialog(wxSC.SizedDialog):
             #print("update_gauge4_task:")
             self.count4 = 0 if self.count4 >= self.count_max else self.count4 + 1
             self.gauge4.SetValue(self.count4)
-            await asyncio.sleep(400/1000);      ## 400ms
+            await asyncio.sleep(300/1000);      ## 300ms
 
 ##============================================================================
 
@@ -130,18 +130,18 @@ class MyApp(wx.App):
         ## bind timer event handler (to run asyncio loop).
         self.Bind(wx.EVT_TIMER, self.idle_handler)
 
-        # Get a handle to the asyncio event loop.
+        ## Get a handle to the asyncio event loop.
         loop = self.asyncio_loop = asyncio.get_event_loop()
 
     def __del__(self):
         self.timer.Stop()
 
-    def idle_handler(self,event):
+    def idle_handler(self, event):
         """Idle handler runs the asyncio event loop."""
         #print("idel_handler: MyApp")
 
         ## Run the asyncio loop for once until all events handled (i.e. not forever).
-        #self.asyncio_loop.run_once()
+        #self.asyncio_loop._run_once()
         self.asyncio_loop.call_soon(self.asyncio_loop.stop) ; self.asyncio_loop.run_forever()
 
         ## Force another idle event to be generated even if no wx events have occurred (note: high cpu usage !!)
