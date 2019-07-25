@@ -170,8 +170,8 @@ class Keypad_Timer():
             key_event = self.key_process(key_code + col, self.col_pins[col])
             ## Process key event.
             if key_event == self.KEY_DOWN:
-                self.key_code = key_code
-                self.key_char = self.keys[key_code]['char']
+                self.key_code = key_code + col
+                self.key_char = self.keys[key_code + col]['char']
 
         self.scan_row_update()
 
